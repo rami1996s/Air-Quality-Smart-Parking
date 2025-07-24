@@ -1,63 +1,52 @@
 # Air Quality Monitoring System in Smart Parking
+implemented with Hussein Mohammad
 
-This project integrates **smart parking control** with **air quality monitoring**, aimed at improving parking management efficiency and environmental conditions in indoor/outdoor facilities.
-implemented with Hussein Mohammad 
+This project combines **vehicle detection** and **air quality monitoring** in a smart parking environment. It uses an ESP32 microcontroller to control a gate, fan, and sensors while communicating with a mobile app and Node-RED dashboard via MQTT.
 
-##  Project Objectives
 
-- Detect vehicle entry and exit using PIR sensors.
-- Automate gate control using a servo motor.
-- Monitor CO and smoke levels using an MQ-2 gas sensor.
-- Activate ventilation (fan) based on air quality thresholds.
-- Enable real-time monitoring and manual control via:
-  - **Node-RED Dashboard**
-  - **Android Mobile App**
 
-##  Components Used
+##  System Features
 
-- **ESP32** – main microcontroller
-- **PIR Sensors** – motion detection at entry/exit
-- **Servo Motor** – gate control
-- **12V Fan** – air ventilation
-- **MQ-2 Sensor** – smoke and CO detection
-- **LED** – status indicator
-- **Android App** – remote control
-- **Node-RED** – for MQTT integration and dashboard
+- Detects car movement using PIR sensors
+- Automatically opens/closes gate using servo motor
+- Monitors CO and smoke levels using MQ-2 sensor
+- Controls fan automatically or manually
+- Displays status in Node-RED dashboard and Android app
 
-##  System Architecture
+##  Hardware Components
 
-- ESP32 communicates with Node-RED using **MQTT**.
-- Topics:
-  - Subscriptions: `door/status`, `co/level`, `smoke/level`, `fan/status`
-  - Publications: `control/fan`, `control/fan/manual`
+- ESP32
+- PIR Sensors
+- MQ-2 Gas Sensor
+- Servo Motor
+- 12V Fan
+- LED
+- Push Button
 
-## ⚙️ Operation Logic
+##  Communication
 
-- **PIR Sensors** detect cars → Gate opens → LED on.
-- **MQ-2 Sensor** checks air:
-  - If CO ≥ 35 or Smoke ≥ 12 → Fan turns ON.
-- **Manual override** via dashboard or app.
-- Live data on Node-RED dashboard.
-
-##  Results
-
-- Serial Monitor for debugging and sensor readings.
-- Functional Node-RED Dashboard.
-- Android app with fan control features.
+- **MQTT Protocol**
+  - `door/status`
+  - `co/level`
+  - `smoke/level`
+  - `fan/status`
+  - `control/fan`
+  - `control/fan/manual`
 
 ##  Files Included
 
-- `Arduino_Code/` – source code for ESP32 (Arduino IDE)
-- `presentation/` – project presentation slides
-- `images/` – optional: add circuit diagrams or photos
-- `README.md` – this file
+- `Arduino_Code/air_quality_code.ino`: Source code written for Arduino IDE.
+- `presentation/IOT_Project.pptx`: Project presentation slides.
+- `.gitignore`: Files to be excluded from version control.
+- `README.md`: You’re reading it!
 
-##  Future Improvements
+##  Future Work
 
-- Improve Android app UI/UX
-- Add air quality data logging
-- Integrate with city-wide smart systems
+- Improve UI of mobile application
+- Add historical logging of air quality data
+- Extend integration into a smart city framework
+
 
 ##  License
 
-This project is open source under the MIT License.
+This project is licensed under the MIT License.
