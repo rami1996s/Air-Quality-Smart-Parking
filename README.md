@@ -1,67 +1,241 @@
-# Air-Quality-Smart-Parking
-Smart parking system with CO/smoke detection, automated gate control, and MQTT-based remote monitoring using ESP32.
-implemented with Hussein Mohammad.
+#include <Wire.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include <ESP32Servo.h>
+#include "MQUnifiedsensor.h"
 
-# Air Quality Monitoring System in Smart Parking
+#define MQTT_MAX_PACKET_SIZE 128
+#define MQTT_PACKET_SIZE 512
 
-This project integrates **smart parking control** with **air quality monitoring**, aimed at improving parking management efficiency and environmental conditions in indoor/outdoor facilities.
+#define RELAY_PIN 5
+#define PIR_SENSOR_PIN_1 2
+#define PIR_SENSOR_PIN_2 15
+#define SERVO_PIN 26
+#define MQ2_PIN 34  // Analog pin where the MQ2 sensor is connected
 
-##  Project Objectives
+Servo doorServo;
+bool doorOpen = false;
+unsigned long doorOpenTime = 0;
+bool automaticFanControl = true;
+bool manualFanControl = false;
+bool manualFanOn = false;
 
-- Detect vehicle entry and exit using PIR sensors.
-- Automate gate control using a servo motor.
-- Monitor CO and smoke levels using an MQ-2 gas sensor.
-- Activate ventilation (fan) based on air quality thresholds.
-- Enable real-time monitoring and manual control via:
-  - **Node-RED Dashboard**
-  - **Android Mobile App**
+const char* ssid = "HUAWEI";
+const char* password = "11223344";
+const char* mqttServer = "broker.hivemq.com";
+const int mqttPort = 1883;
+const char* mqttUser = "IOT_Park";
+const char* mqttPassword = "Park1234";
+const char* clientId = "ESP32Client-";
+const char* doorStatusTopic = "door/status";
+const char* fanStatusTopic = "fan/status";
+const char* fanControlTopic = "control/fan";
+const char* smokeTopic = "smoke/level";
+const char* coTopic = "co/level";
+const char* fanManualTopic = "control/fan/manual";
 
-## Components Used
+WiFiClient espClient;
+PubSubClient client(espClient);
+MQUnifiedsensor gasSensor("ESP32", 3.3, 12, MQ2_PIN, "MQ-2");
 
-- **ESP32** – main microcontroller
-- **PIR Sensors** – motion detection at entry/exit
-- **Servo Motor** – gate control
-- **12V Fan** – air ventilation
-- **MQ-2 Sensor** – smoke and CO detection
-- **LED** – status indicator
-- **Android App** – remote control
-- **Node-RED** – for MQTT integration and dashboard
+unsigned long previousMillis = 0;
+const long interval = 6000; // Main loop interval
 
-##  System Architecture
+void setup_wifi() {
+  delay(10);
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
 
-- ESP32 communicates with Node-RED using **MQTT**.
-- Topics:
-  - Subscriptions: `door/status`, `co/level`, `smoke/level`, `fan/status`
-  - Publications: `control/fan`, `control/fan/manual`
+void callback(char* topic, byte* payload, unsigned int length) {
+  if (String(topic) == fanControlTopic && length == 1) {
+    bool controlMode = payload[0] == '1'; // Check if the payload is '1' (automatic) or '0' (manual)
+    automaticFanControl = controlMode;
+    manualFanControl = !controlMode; // Disable the opposite mode
+    Serial.print("Fan control mode set to: ");
+    Serial.println(controlMode ? "automatic" : "manual");
 
-##  Operation Logic
+    if (automaticFanControl) {
+      digitalWrite(RELAY_PIN, LOW); // Ensure fan is off when switching to automatic mode
+      client.publish(fanStatusTopic, "automatic", true);
+      Serial.println("Switched to automatic fan control mode.");
+    } else {
+      // Publish the current manual fan control status
+      if (manualFanOn) {
+        digitalWrite(RELAY_PIN, HIGH); // Turn on fan if it was on before
+        client.publish(fanStatusTopic, "working", true);
+      } else {
+        digitalWrite(RELAY_PIN, LOW); // Turn off fan if it was off before
+        client.publish(fanStatusTopic, "not working", true);
+      }
+      Serial.println("Switched to manual fan control mode.");
+    }
+  } else if (String(topic) == fanManualTopic && length == 1 && manualFanControl) {
+    manualFanOn = (payload[0] == '1'); // '1' to turn on, '0' to turn off manually
+    if (manualFanOn) {
+      digitalWrite(RELAY_PIN, HIGH); // Turn on fan
+      client.publish(fanStatusTopic, "working", true);
+      Serial.println("Fan turned on manually.");
+    } else {
+      digitalWrite(RELAY_PIN, LOW); // Turn off fan
+      client.publish(fanStatusTopic, "not working", true);
+      Serial.println("Fan turned off manually.");
+    }
+  }
+}
 
-- **PIR Sensors** detect cars → Gate opens → LED on.
-- **MQ-2 Sensor** checks air:
-  - If CO ≥ 35 or Smoke ≥ 12 → Fan turns ON.
-- **Manual override** via dashboard or app.
-- Live data on Node-RED dashboard.
+void reconnect() {
+  if (WiFi.status() != WL_CONNECTED) {
+    setup_wifi();
+  }
+  String fullClientId = clientId;
+  fullClientId += String(ESP.getEfuseMac(), HEX);
 
-##  Results
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
 
-- Serial Monitor for debugging and sensor readings.
-- Functional Node-RED Dashboard.
-- Android app with fan control features.
+    // Attempt to connect with a keepalive interval of 60 seconds
+    if (client.connect(fullClientId.c_str(), mqttUser, mqttPassword)) {
+      Serial.println("connected");
+      client.subscribe(fanControlTopic);
+      client.subscribe(fanManualTopic);
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 1 second");
+      delay(1000);
+    }
+  }
+}
 
-##  Files Included
+void setup() {
+  Wire.begin();
+  Serial.begin(115200);
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(PIR_SENSOR_PIN_1, INPUT);
+  pinMode(PIR_SENSOR_PIN_2, INPUT);
+  doorServo.attach(SERVO_PIN);
 
-- `Arduino_Code/` – source code for ESP32 (Arduino IDE)
-- `presentation/` – project presentation slides
-- `images/` – optional: add circuit diagrams or photos
-- `README.md` – this file
+  setup_wifi();
+  client.setServer(mqttServer, mqttPort);
+  client.setCallback(callback);
 
-##  Future Improvements
+  gasSensor.setRegressionMethod(1);
+  gasSensor.setA(574.25);
+  gasSensor.setB(-2.222);
+  gasSensor.init();
 
-- Improve Android app UI/UX
-- Add air quality data logging
-- Integrate with city-wide smart systems
+  Serial.println("Calibrating MQ-2 Sensor, please wait...");
+  float calcR0 = gasSensor.calibrate(9.83);
+  if (isnan(calcR0)) {
+    Serial.println("MQ-2 Sensor calibration failed!");
+    while (1);
+  }
+  Serial.print("Calibration done! R0 = ");
+  Serial.println(calcR0);
+  gasSensor.setR0(calcR0);
+}
 
-##  License
+void loop() {
+  unsigned long currentMillis = millis();
 
-This project is open source under the MIT License.
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+  // Read PIR sensors and control door servo
+  bool motionDetected1 = digitalRead(PIR_SENSOR_PIN_1);
+  bool motionDetected2 = digitalRead(PIR_SENSOR_PIN_2);
+
+  Serial.print("PIR Sensor 1 value: ");
+  Serial.println(motionDetected1);
+  Serial.print("PIR Sensor 2 value: ");
+  Serial.println(motionDetected2);
+
+  if (motionDetected1 || motionDetected2) {
+    Serial.println("Motion detected");
+    if (!doorOpen) {
+      Serial.println("Opening door...");
+      doorServo.write(90);
+      delay(1000);
+      doorOpen = true;
+      Serial.println("Door opened");
+      client.publish(doorStatusTopic, "open", true);
+      doorOpenTime = millis();
+    } else {
+      doorOpenTime = millis();
+    }
+    delay(8000);
+  }
+
+  // Close the door if it has been open for too long
+  if (doorOpen && millis()) {
+    Serial.println("Closing door...");
+    doorServo.write(0);
+    delay(1000);
+    doorOpen = false;
+    Serial.println("Door closed");
+    client.publish(doorStatusTopic, "closed", true);
+  }
+
+  // Read MQ-2 sensor values
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    
+    int rawValue = analogRead(MQ2_PIN);
+    float voltage = (rawValue / 4095.0) * 3.3;
+
+    // Calculate gas concentrations
+    float gasConcentrationCO = voltage / 0.05;
+    float gasConcentrationSmoke = voltage / 0.1;
+
+    // Publish MQTT topics with QoS 1
+    client.publish(coTopic, String(gasConcentrationCO).c_str(), true);
+    client.publish(smokeTopic, String(gasConcentrationSmoke).c_str(), true);
+
+    Serial.print("CO Concentration: ");
+    Serial.print(gasConcentrationCO);
+    Serial.println(" ppm");
+
+    Serial.print("Smoke Concentration: ");
+    Serial.print(gasConcentrationSmoke);
+    Serial.println(" ppm");
+
+    // Fan control logic based on mode
+    if (manualFanControl) {
+      if (manualFanOn) {
+        digitalWrite(RELAY_PIN, HIGH);
+        client.publish(fanStatusTopic, "working", true);
+        Serial.println("Fan turned on manually.");
+      } else {
+        digitalWrite(RELAY_PIN, LOW);
+        client.publish(fanStatusTopic, "not working", true);
+        Serial.println("Fan turned off manually.");
+      }
+    } else if (automaticFanControl) {
+      if (gasConcentrationCO > 35 || gasConcentrationSmoke > 10) {
+        digitalWrite(RELAY_PIN, HIGH);
+        client.publish(fanStatusTopic, "working", true);
+        Serial.println("Turning on fan due to poor air quality.");
+      } else {
+        digitalWrite(RELAY_PIN, LOW);
+        client.publish(fanStatusTopic, "not working", true);
+        Serial.println("Air quality is good.");
+      }
+    }
+  }
+  delay(3000);
+}
+
 
