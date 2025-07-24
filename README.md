@@ -1,6 +1,7 @@
 # Air Quality Monitoring System in Smart Parking
 
 This project integrates **smart parking control** with **air quality monitoring**, aimed at improving parking management efficiency and environmental conditions in indoor/outdoor facilities.
+implemented with Hussein Mohammad 
 
 ##  Project Objectives
 
@@ -56,11 +57,6 @@ This project integrates **smart parking control** with **air quality monitoring*
 - Improve Android app UI/UX
 - Add air quality data logging
 - Integrate with city-wide smart systems
-
-##  Authors
-
-- **Rami Saleh** – Matricola: 251588
-- **Hussein Mohammad** – Matricola: 247528
 
 ##  License
 
