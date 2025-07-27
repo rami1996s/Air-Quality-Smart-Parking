@@ -4,7 +4,7 @@ implemented with Hussein Mohammad
 
 This project combines **vehicle detection** and **air quality monitoring** in a smart parking environment. It uses an ESP32 microcontroller to control a gate, fan, and sensors while communicating with a mobile app and Node-RED dashboard via MQTT.
 
-## 🚗 System Features
+## System Features
 
 - Detects car movement using PIR sensors
 - Automatically opens/closes gate using servo motor
@@ -12,7 +12,7 @@ This project combines **vehicle detection** and **air quality monitoring** in a 
 - Controls fan automatically or manually
 - Displays status in Node-RED dashboard and Android app
 
-## 🔧 Hardware Components
+## Hardware Components
 
 - ESP32
 - PIR Sensors
@@ -22,7 +22,7 @@ This project combines **vehicle detection** and **air quality monitoring** in a 
 - LED
 - Push Button
 
-## 📲 Communication
+## Communication
 
 - **MQTT Protocol**
   - `door/status`
