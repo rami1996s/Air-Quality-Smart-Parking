@@ -1,6 +1,6 @@
 # Air Quality Monitoring System in Smart Parking
 
-implemented with Hussein Mohammad
+implemented with Hussein Mohammad in 2024
 
 This project combines **vehicle detection** and **air quality monitoring** in a smart parking environment. It uses an ESP32 microcontroller to control a gate, fan, and sensors while communicating with a mobile app and Node-RED dashboard via MQTT.
 
