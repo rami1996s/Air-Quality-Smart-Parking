@@ -68,6 +68,3 @@ Contributing
 - Add historical logging of air quality data
 - Extend integration into a smart city framework
 
-## License
-
-This project is licensed under the MIT License.
