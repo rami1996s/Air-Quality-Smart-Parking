@@ -56,6 +56,7 @@ The Flutter code provides the user interface and handles MQTT communication. Key
 
 MQTT Client: Uses the mqtt_client package to connect to the MQTT broker. Real-time Data Display: Displays sensor readings and status information. User Interaction: Allows users to manually control the fan and door. Air Quality Visualization: Provides visual cues indicating good or poor air quality.
 
+......................................................
 Setup and Installation
 Install Arduino IDE: Download and install the Arduino IDE from https://www.arduino.cc/.
 
