@@ -24,10 +24,15 @@ This project combines **vehicle detection** and **air quality monitoring** in a 
 
 ## Communication
 Technologies Used
+
 Frontend: Flutter
+
 Backend: ESP32 Microcontroller, Arduino IDE (C++)
+
 Communication: MQTT (HiveMQ Broker used in example)
+
 Sensors: MQ-135 Gas Sensor, PIR Sensor(s)
+
 System Architecture
 The Flutter app subscribes to MQTT topics published by the ESP32 to receive sensor data and status updates. It also publishes messages to control the fan and door.
 
@@ -35,11 +40,16 @@ Arduino Code (ESP32)
 The Arduino code manages the sensors, actuators, and MQTT communication. Key features include:
 
 Sensor Reading: Reads data from the MQ-135 and PIR sensors.
+
 MQTT Publishing: Publishes sensor readings and status updates to MQTT topics.
+
 MQTT Subscribing: Subscribes to control topics for manual fan control.
+
 Actuator Control: Controls the relay (fan) and servo motor (door) based on sensor readings and user commands.
+
 Automatic/Manual Fan Control: Allows switching between automatic (sensor-based) and manual fan control.
-For Arduino Code (see attached file: arduino_code.cpp)
+
+For Arduino Code (look for attached file: arduino_code.cpp)
 
 Flutter Code (Highlights)
 The Flutter code provides the user interface and handles MQTT communication. Key features include:
