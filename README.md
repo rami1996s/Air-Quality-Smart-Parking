@@ -58,10 +58,15 @@ MQTT Client: Uses the mqtt_client package to connect to the MQTT broker. Real-ti
 
 Setup and Installation
 Install Arduino IDE: Download and install the Arduino IDE from https://www.arduino.cc/.
+
 Install Libraries: Install the necessary Arduino libraries (PubSubClient, ESP32Servo, MQUnifiedsensor).
+
 Configure WiFi and MQTT: Update the Arduino code with your WiFi credentials and MQTT broker details.
+
 Install Flutter: Download and install Flutter from https://flutter.dev/.
+
 Install Dependencies: Run flutter pub get to install the Flutter dependencies.
+
 Run the Application: Run the Flutter app on your device or emulator.
 Contributing
 
